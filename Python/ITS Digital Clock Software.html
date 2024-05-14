@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<!-- saved from url=(0165)http://192.168.1.253/action_page.php?SetTimeUpOver=&SetTimeDwnStp=&SetTimeDwnbUp=&PauseClock=enable&AutoBright=&SetBrht=&AutoBattery=&ShowBattery=&DiagnosticCommand= -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="viewport" content="width=device-width, initial-scale=1" http-equiv="cache-control">
+<link rel="icon" href="data:,">
+<title>ITS Digital Clock Software</title>
+<style>
+html {font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: left;}
+.header {padding: 5px 0 15px 0; text-align: center; background-color: #585c68; color: #ffffff; font-size: 12px; clear:both;}
+.refresh {margin: 10px; text-align: center; font-size: 16px;}
+.footer {margin-top: 30px; padding: 10px; text-align: center; background-color: #363537; color: #ffffff; font-size: 12px;}
+.row{}
+.txtbx{display:inline-block; padding:5px;}
+.btn {display: inline-block; padding: 5px;}
+.label {display: inline-block; padding: 5px; font-size:14px;}
+form { margin:0 auto; margin-top:20px; width:fit-content; }
+input[type=text] { padding:7px; }
+input[type=submit] {padding: 7px 15px; background-color: #4a87c8; color:#ffffff; border-color:#4a87c8; }
+nav{float:right; margin:10px 0 10px 0; clear:both;}
+ul {list-style-type:none; margin:0; padding:0; clear:both;}
+li {display:inline-block; font-size:14px; padding-right:40px;}
+a {text-decoration:none; color:#585c68;}
+a:hover {text-decoration:underline;}
+</style>
+</head>
+<body>
+<div class="header">
+<h1>ITS Digital Clock</h1>
+<div>Version 1.39</div>
+</div>
+<div class="refresh">
+Refresh this page after a command
+</div>
+<form action="http://192.168.1.253/action_page.php">
+<div class="row">
+<div class="txtbx"><input type="text" id="SetTimeUpOver" name="SetTimeUpOver" size="7" placeholder="HHMMSS"></div>
+<div class="btn"><input type="submit" value="Submit"></div>
+<div class="label">Set Time and count up</div>
+</div>
+<div class="row">
+<div class="txtbx"><input type="text" id="SetTimeDwnStp" name="SetTimeDwnStp" size="7" placeholder="HHMMSS"></div>
+<div class="btn"><input type="submit" value="Submit"></div>
+<div class="label">Set Time and Count down</div>
+</div>
+<div class="row">
+<div class="txtbx"><input type="text" id="SetTimeDwnbUp" name="SetTimeDwnbUp" size="7" placeholder="HHMMSS"></div>
+<div class="btn"><input type="submit" value="Submit"></div>
+<div class="label">Set Time, Count down/up</div>
+</div>
+<div class="row">
+<div class="txtbx"><input type="text" id="PauseClock" name="PauseClock" size="7" placeholder="Enable"></div>
+<div class="btn"><input type="submit" value="Submit"></div>
+<div class="label">Pause the clock or start again<br>Enable or Disable should be entered</div>
+</div>
+<div class="row">
+<div class="txtbx"><input type="text" id="AutoBright" name="AutoBright" size="7" placeholder="on"></div>
+<div class="btn"><input type="submit" value="Submit"></div>
+<div class="label">Auto Brightness - on or off</div>
+</div>
+<div class="row">
+<div class="txtbx"><input type="text" id="SetBrht" name="SetBrht" size="7" placeholder="100"></div>
+<div class="btn"><input type="submit" value="Submit"></div>
+<div class="label">Enter Brightness from 1 to 100%</div>
+</div>
+<div class="row">
+<div class="txtbx"><input type="text" id="AutoBattery" name="AutoBattery" size="7" placeholder="on"></div>
+<div class="btn"><input type="submit" value="Submit"></div>
+<div class="label">Auto Battery Brightness - on or off</div>
+</div>
+<div class="row">
+<div class="txtbx"><input type="text" id="ShowBattery" name="ShowBattery" size="7" placeholder="show"></div>
+<div class="btn"><input type="submit" value="Submit"></div>
+<div class="label">Current Battery Level</div>
+</div>
+<div class="row">
+<div class="txtbx"><input type="text" id="DiagnosticCommand" name="DiagnosticCommand" size="7" placeholder=""></div>
+<div class="btn"><input type="submit" value="Submit"></div>
+<div class="label">Internal Command</div>
+</div>
+</form>
+<div class="footer">
+(C) Copyright 2020-2024 Innovative Timing Systems, LLC
+</div>
+
+
+
+</body></html>
