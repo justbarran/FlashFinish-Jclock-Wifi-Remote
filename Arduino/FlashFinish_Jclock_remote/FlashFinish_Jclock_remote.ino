@@ -619,6 +619,10 @@ void displaySentClear(bool force)
     display.display(); 
 }
 
+/*==================================================================*/
+/*==================================================================*/
+/*==================================================================*/
+
 void updateWifi(bool force) 
 {
   if(WiFi.status() == WL_CONNECTED)
@@ -651,7 +655,7 @@ void updateWifi(bool force)
     display.setTextSize(2);             // Normal 1:1 pixel scale 
     display.setCursor(0,0);             // Start at top-left corner  
     display.print("       "); 
-    display.display();   
+    updateBattery(true);   
     display.setCursor(0,0);             // Start at top-left corner  
     WiFi.begin(ssid, password);
     Serial.println("Connecting");
@@ -665,7 +669,7 @@ void updateWifi(bool force)
         dashcount = 0;
         updateBattery(false); 
         display.setCursor(0,0);             // Start at top-left corner  
-        display.print("       "); 
+        display.print("     "); 
         display.setCursor(0,0);             // Start at top-left corner  
       }       
       display.display();    
