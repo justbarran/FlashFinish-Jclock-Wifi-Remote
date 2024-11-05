@@ -41,7 +41,7 @@
 
 #define DISPLAY_UPDATE_CLOCK_SET_TIME_X 0
 #define DISPLAY_UPDATE_CLOCK_SET_TIME_Y 47
-#define DISPLAY_UPDATE_CLOCK_SET_X 22
+#define DISPLAY_UPDATE_CLOCK_SET_X 25
 #define DISPLAY_UPDATE_CLOCK_SET_Y 0
 #define DISPLAY_UPDATE_CLOCK_TIME_Y 20
 #define DISPLAY_UPDATE_CLOCK_TIME_HRS_X 0
@@ -185,11 +185,18 @@ static const unsigned char PROGMEM logo_bmp[] =
 
 #define BATTERY_HEIGHT   16
 #define BATTERY_WIDTH    16
-
 #define BATTERY_PERC_X   80
 #define BATTERY_PERC_Y   2
 #define BATTERY_LOGO_X   114
 #define BATTERY_LOGO_Y   0
+
+#define CLOCK_BATTERY_HEIGHT   16
+#define CLOCK_BATTERY_WIDTH    16
+#define CLOCK_BATTERY_PERC_X   DISPLAY_UPDATE_CLOCK_SET_X
+#define CLOCK_BATTERY_PERC_Y   BATTERY_PERC_Y
+#define CLOCK_BATTERY_LOGO_X   DISPLAY_UPDATE_CLOCK_SET_X + (12*3)
+#define CLOCK_BATTERY_LOGO_Y   0
+
 
 const unsigned char wifi_full_bmp [] PROGMEM = {
 	0x00, 0x00, 0x00, 0x03, 0xfc, 0x00, 0x0f, 0xff, 0x00, 0x3c, 0x03, 0xc0, 0x70, 0x00, 0xe0, 0xe3, 
@@ -227,13 +234,18 @@ const unsigned char charge_bmp [] PROGMEM = {
 	0x01, 0xc0, 0x01, 0xc0, 0x03, 0x80, 0x03, 0x80, 0x03, 0x00, 0x02, 0x00, 0x02, 0x00, 0x04, 0x00
 };
 
+const unsigned char clock_bmp [] PROGMEM = {
+	0x18, 0x60, 0x78, 0x78, 0x6f, 0xdc, 0x50, 0x28, 0x21, 0x10, 0x41, 0x08, 0x81, 0x04, 0x81, 0x04, 
+	0xbf, 0x04, 0x80, 0x04, 0x80, 0x04, 0xc0, 0x04, 0x40, 0x08, 0x20, 0x10, 0x18, 0x20, 0x0f, 0xc0
+};
+
 ClickButton encoderButton(ENCODER_BUTTON_PIN, LOW, CLICKBTN_PULLUP);
 ClickButton mainButton(MAIN_BUTTON_PIN, LOW, CLICKBTN_PULLUP);
 ESPRotary encoder;
 // Init ESP8266 timer 1
 ESP8266Timer ITimer;
 
-#define UPDATE_BATTERY_TIME_MS    5000
+#define UPDATE_BATTERY_TIME_MS    10000
 uint32_t updateBatteryTime = 0;
 uint32_t updateBatteryTimeLast = 0;
 uint8_t updateBatteryChargeFlag = false;
@@ -262,6 +274,9 @@ uint16_t adcValue= 0;
 
 uint8_t internalBatteryPercent = 0;
 uint8_t internalBatteryPercentLast = 0;
+
+uint8_t clockBatteryPercent = 0;
+uint8_t clockBatteryPercentLast = 0;
 
 //=======================================================================
 void IRAM_ATTR TimerHandler()
@@ -350,6 +365,9 @@ params = {
 #define CLOCK_PAUSE_DISABLE "disable"
 #define CLOCK_AUTO_BRIGHTNESS_ON "on"
 #define CLOCK_AUTO_BRIGHTNESS_OFF "off"
+#define CLOCK_SHOW_BATTERY_ON "show"
+
+#define CLOCK_SEND_DELAY 250
 
 // Define base URL and parameters
 const char* baseURL = "http://192.168.1.253/action_page.php?";
@@ -363,7 +381,7 @@ WiFiClient client;
 
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(9600);
+  Serial.begin(115200);
   delay(50);
   Serial.println("\n\n Flash Finish Tech");
   delay(100);
@@ -448,7 +466,7 @@ void updateClock(uint8_t hrs, uint8_t mins, uint8_t secs, uint8_t displayState, 
 
   if(DISPLAY_STATE_SET_TIME==displayState)
   {    
-    display.print("TIME");
+    display.print("TIME ");
     display.fillRect(DISPLAY_UPDATE_CLOCK_TIME_HRS_X,DISPLAY_UPDATE_CLOCK_SET_TIME_Y,display.width(),display.height()-DISPLAY_UPDATE_CLOCK_SET_TIME_Y, SSD1306_BLACK);
     display.setTextSize(3);
     if(setState == DIGIT_STATE_HRS)
@@ -474,7 +492,7 @@ void updateClock(uint8_t hrs, uint8_t mins, uint8_t secs, uint8_t displayState, 
   }
   else
   {
-    display.print("     ");
+    //display.print("     ");
   }
 
   display.setTextSize(3);             // Normal 1:1 pixel scale    
@@ -601,6 +619,10 @@ void displaySentClear(bool force)
     display.display(); 
 }
 
+/*==================================================================*/
+/*==================================================================*/
+/*==================================================================*/
+
 void updateWifi(bool force) 
 {
   if(WiFi.status() == WL_CONNECTED)
@@ -628,25 +650,29 @@ void updateWifi(bool force)
   }
   else 
   {
+    clockBatteryPercent = 0;
     display.setTextColor(SSD1306_WHITE,SSD1306_BLACK);        // Draw white text
     display.setTextSize(2);             // Normal 1:1 pixel scale 
+    display.setCursor(0,0);             // Start at top-left corner  
+    display.print("       "); 
+    updateBattery(true);   
     display.setCursor(0,0);             // Start at top-left corner  
     WiFi.begin(ssid, password);
     Serial.println("Connecting");
     uint8_t dashcount = 0;
     while(WiFi.status() != WL_CONNECTED) {    
       Serial.print(".");
-      display.print(">");         
-       if(dashcount>=4)  
+      display.print(">"); 
+      dashcount++;               
+      if(dashcount>3)  
       {
         dashcount = 0;
         updateBattery(false); 
         display.setCursor(0,0);             // Start at top-left corner  
         display.print("     "); 
         display.setCursor(0,0);             // Start at top-left corner  
-      }
-      display.display();
-      dashcount++;      
+      }       
+      display.display();    
       delay(500);
     }
     display.setCursor(0,0);             // Start at top-left corner  
@@ -695,11 +721,35 @@ void updateBattery(uint8_t force)
          }
       }
     }
+    
+    if(DISPLAY_STATE_IDLE==displayState)
+    {
+      updateParameter(CLOCK_PARM_SHOW_BATTERY,CLOCK_SHOW_BATTERY_ON);
+      if(clockBatteryPercent!=clockBatteryPercentLast)
+      {
+        display.setTextSize(2);             // Normal 1:1 pixel scale
+        display.setTextColor(SSD1306_WHITE,SSD1306_BLACK);        // Draw white text      
+        if(clockBatteryPercent>0)
+        {
+          display.setCursor(CLOCK_BATTERY_PERC_X,CLOCK_BATTERY_PERC_Y);             // Start at top-left corner
+          if(clockBatteryPercent<100)display.print(F(" "));
+          if(clockBatteryPercent<10)display.print(F(" "));
+          display.print(clockBatteryPercent);
+          display.print(" ");        
+          display.drawBitmap(CLOCK_BATTERY_LOGO_X,CLOCK_BATTERY_LOGO_Y,clock_bmp, CLOCK_BATTERY_WIDTH, CLOCK_BATTERY_HEIGHT, 1);
+        }
+        else
+        {
+          display.print("    ");
+        }
+      }
+    }
 
     if(true==force)
     {
       display.setTextSize(2);             // Normal 1:1 pixel scale
       display.setTextColor(SSD1306_WHITE,SSD1306_BLACK);        // Draw white text
+      
       display.setCursor(BATTERY_PERC_X,BATTERY_PERC_Y);             // Start at top-left corner
       if(updateBatteryChargeFlag==false)
       {
@@ -803,7 +853,21 @@ void clearParameter() {
   }
 }
 
+unsigned int extractBatteryLevel(const String& payload) {
+  int startIndex = payload.indexOf("Battery Level:") + 14; // 14 characters in "Battery Level:"
+  if (startIndex > 13) { // Check if "Battery Level:" was found
+    int endIndex = payload.indexOf('%', startIndex);
+    if (endIndex > startIndex) {
+      String batteryString = payload.substring(startIndex, endIndex);
+      float batteryFloat = batteryString.toFloat(); // Convert to float first to handle decimal
+      return static_cast<unsigned int>(batteryFloat); // Convert to unsigned int, discarding decimal part
+    }
+  }
+  return 0; // Return 0 if not found or in case of an error
+}
+
 void updateParameter(const char* key, const char* value) {
+  bool getbattery = false;
   for (int i = 0; i < sizeof(parameterNames) / sizeof(parameterNames[0]); i++) {
     if (strcmp(parameterNames[i], key) == 0) {
       strcpy(parameterValues[i], value);
@@ -811,7 +875,11 @@ void updateParameter(const char* key, const char* value) {
       // Serial.print(key);
       // Serial.print(" to ");
       // Serial.println(value);
-      sendGetRequest();
+      if (strcmp(CLOCK_PARM_SHOW_BATTERY, key) == 0)
+      {
+        getbattery = true;
+      }
+      sendGetRequest(getbattery);
       clearParameter();
       return;
     }
@@ -820,7 +888,7 @@ void updateParameter(const char* key, const char* value) {
   //Serial.println(key);
 }
 
-void sendGetRequest() {
+void sendGetRequest(bool getbattery) {
   char url[300] = {0}; // Large enough to hold the base URL and all parameters
   strcpy(url, baseURL);
   for (int i = 0; i < sizeof(parameterNames) / sizeof(parameterNames[0]); i++) {
@@ -832,21 +900,29 @@ void sendGetRequest() {
   //Serial.println(url);  
   
   if (WiFi.status() == WL_CONNECTED) {
-    displaySent(false);
+
+    if(getbattery != true)displaySent(false);
     HTTPClient http;
     http.begin(client, url);
     int httpCode = http.GET();
     if (httpCode > 0) {
-      String payload = http.getString();
-      //Serial.print("Received payload: ");
-      //Serial.println(payload);
+      if(getbattery==true)
+      {
+        String payload = http.getString();
+        clockBatteryPercent = extractBatteryLevel(payload);
+        //Serial.print("Received payload: ");
+        //Serial.println(payload);
+      }
+      
     } else {
       //Serial.print("GET request failed: ");
       //Serial.println(http.errorToString(httpCode).c_str());
     }
     http.end();
-    displaySentClear(false);
-  } else {
+    if(getbattery != true)displaySentClear(false);
+    updateBatteryTimeLast = millis();
+  } 
+  else {
     //Serial.println("WiFi not connected");
   }  
   
@@ -952,6 +1028,19 @@ void loop()
       timeState = CLOCK_STATE_COUNTUP; 
       displayState = DISPLAY_STATE_INCREMENT_TIME;
     } 
+    else if(DISPLAY_STATE_SET_TIME==displayState)
+    {
+      digitState = DIGIT_STATE_ZERO;
+      displayState = DISPLAY_STATE_IDLE;
+      updateClock(timeValueHrs,timeValueMins,timeValueSecs,displayState,digitState);
+      updateBightness(brightnessValue,displayState, true); 
+    }
+    else if(DISPLAY_STATE_SET_BRIGHTNESS == displayState)
+    {
+      digitState = DIGIT_STATE_ZERO;
+      displayState = DISPLAY_STATE_SEND_BRIGHTNESS;
+      updateBightness(brightnessValue,displayState, true);
+    }
   }
 
   if(mainButton.clicks == 2) 
@@ -1010,6 +1099,8 @@ void loop()
           formatTime(timeValueHrs,timeValueMins,timeValueSecs+CLOCK_TIME_SECS_OFFSET,timeString);
         }        
         updateParameter(CLOCK_PARM_TIME_DOWN_UP,timeString);
+        //updateParameter(CLOCK_PARM_TIME_UP,timeString);        
+        delay(CLOCK_SEND_DELAY);
         updateParameter(CLOCK_PARM_PAUSE_CLOCK,CLOCK_PAUSE_ENABLE);
         displayState=DISPLAY_STATE_IDLE;
         break;
@@ -1023,8 +1114,9 @@ void loop()
         }
         else
         {
-          updateParameter(CLOCK_PARM_AUTO_BRIGHT,CLOCK_AUTO_BRIGHTNESS_OFF);
           updateParameter(CLOCK_PARM_SET_BRIGHTNESS,brightnessString);
+          delay(CLOCK_SEND_DELAY);
+          updateParameter(CLOCK_PARM_AUTO_BRIGHT,CLOCK_AUTO_BRIGHTNESS_OFF);
         }
         displayState=DISPLAY_STATE_IDLE;
         break;
@@ -1036,8 +1128,7 @@ void loop()
         else
         {
           formatTime(timeValueHrs,timeValueMins,timeValueSecs,timeString);
-        }
-        
+        }        
         updateParameter(CLOCK_PARM_TIME_UP,timeString);
         displayState=DISPLAY_STATE_IDLE;
         break;
